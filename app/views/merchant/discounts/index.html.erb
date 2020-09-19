@@ -1,0 +1,5 @@
+<h1>My Discounts</h1>
+<% @discounts.each do |discount| %>
+<%= discount.discount_name %>
+<% end %>
+<%= link_to 'New Discount', '/merchant/discounts/new' %>
