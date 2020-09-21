@@ -6,9 +6,12 @@ RSpec.describe 'Cart Show Page' do
     before :each do
       @megan = Merchant.create!(name: 'Megans Marmalades', address: '123 Main St', city: 'Denver', state: 'CO', zip: 80218)
       @brian = Merchant.create!(name: 'Brians Bagels', address: '125 Main St', city: 'Denver', state: 'CO', zip: 80218)
-      @ogre = @megan.items.create!(name: 'Ogre', description: "I'm an Ogre!", price: 20, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 5 )
+      @ogre = @megan.items.create!(name: 'Ogre', description: "I'm an Ogre!", price: 20, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 20 )
       @giant = @megan.items.create!(name: 'Giant', description: "I'm a Giant!", price: 50, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 3 )
       @hippo = @brian.items.create!(name: 'Hippo', description: "I'm a Hippo!", price: 50, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 3 )
+      @discount_1 = @megan.discounts.create!(minimum_quantity: 5, discounted_percentage: 20, discount_name: "Fall 5")
+      @discount_1 = @megan.discounts.create!(minimum_quantity: 10, discounted_percentage: 40, discount_name: "Fall 5")
+
     end
 
     describe 'I can see my cart' do
@@ -166,6 +169,48 @@ RSpec.describe 'Cart Show Page' do
         expect(current_path).to eq('/cart')
         expect(page).to_not have_content("#{@hippo.name}")
         expect(page).to have_content("Cart: 0")
+      end
+
+      describe "If I add enough of one item to meet a discount minimum quantity" do
+        it "the subtotal is adjusted minus the discount percentage" do
+          visit item_path(@ogre)
+          click_button 'Add to Cart'
+          visit '/cart'
+
+          3.times do
+            click_button('More of This!')
+          end
+          expect(page).to have_content('Quantity: 4')
+          expect(page).to have_content('Subtotal: $80.00')
+
+          click_button('More of This!')
+
+          expect(page).to have_content('Quantity: 5')
+          expect(page).to have_content('Subtotal: $80.00')
+        end
+
+        describe "If there are multiple discounts" do
+          describe "And I add enough of one item to meet multiple discount quanity minimums" do
+
+            it "the subtotal is adjusted minus the greater of the discounts percentages" do
+              visit item_path(@ogre)
+              click_button 'Add to Cart'
+              visit '/cart'
+
+              8.times do
+                click_button('More of This!')
+              end
+              expect(page).to have_content('Quantity: 9')
+              expect(page).to have_content('Subtotal: $144.00')
+
+              click_button('More of This!')
+
+              expect(page).to have_content('Quantity: 10')
+              expect(page).to have_content('Subtotal: $120.00')
+            end
+          end
+        end
+
       end
     end
   end
