@@ -13,11 +13,10 @@ class User::OrdersController < ApplicationController
     order = current_user.orders.new
     order.save
       cart.items.each do |item|
-        #Method that creates order_items w/ application of discount based on quantity
         order.order_items.create({
           item: item,
           quantity: cart.count_of(item.id),
-          price: item.price
+          price: cart.adjusted_price(item.id)
           })
       end
     session.delete(:cart)
