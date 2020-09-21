@@ -1,4 +1,4 @@
-require 'rails_helper'
+  require 'rails_helper'
 include ActionView::Helpers::NumberHelper
 
 RSpec.describe 'Order Show Page' do
@@ -7,15 +7,17 @@ RSpec.describe 'Order Show Page' do
       @megan = Merchant.create!(name: 'Megans Marmalades', address: '123 Main St', city: 'Denver', state: 'CO', zip: 80218)
       @brian = Merchant.create!(name: 'Brians Bagels', address: '125 Main St', city: 'Denver', state: 'CO', zip: 80218)
       @sal = Merchant.create!(name: 'Sals Salamanders', address: '125 Main St', city: 'Denver', state: 'CO', zip: 80218)
-      @ogre = @megan.items.create!(name: 'Ogre', description: "I'm an Ogre!", price: 20.25, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 5 )
-      @giant = @megan.items.create!(name: 'Giant', description: "I'm a Giant!", price: 50, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 3 )
-      @hippo = @brian.items.create!(name: 'Hippo', description: "I'm a Hippo!", price: 50, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 1 )
+      @ogre = @megan.items.create!(name: 'Ogre', description: "I'm an Ogre!", price: 20.25, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 20 )
+      @giant = @megan.items.create!(name: 'Giant', description: "I'm a Giant!", price: 50, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 20 )
+      @hippo = @brian.items.create!(name: 'Hippo', description: "I'm a Hippo!", price: 50, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaLM_vbg2Rh-mZ-B4t-RSU9AmSfEEq_SN9xPP_qrA2I6Ftq_D9Qw', active: true, inventory: 20 )
       @user = User.create!(name: 'Megan', address: '123 Main St', city: 'Denver', state: 'CO', zip: 80218, email: 'megan_1@example.com', password: 'securepassword')
       @order_1 = @user.orders.create!(status: "packaged")
       @order_2 = @user.orders.create!(status: "pending")
       @order_item_1 = @order_1.order_items.create!(item: @ogre, price: @ogre.price, quantity: 2, fulfilled: true)
       @order_item_2 = @order_2.order_items.create!(item: @giant, price: @hippo.price, quantity: 2, fulfilled: true)
       @order_item_3 = @order_2.order_items.create!(item: @ogre, price: @ogre.price, quantity: 2, fulfilled: false)
+
+
       allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(@user)
     end
 
@@ -79,8 +81,26 @@ RSpec.describe 'Order Show Page' do
 
       expect(@order_item_2.fulfilled).to eq(false)
       expect(@order_item_3.fulfilled).to eq(false)
-      expect(@giant.inventory).to eq(5)
-      expect(@ogre.inventory).to eq(7)
+      expect(@giant.inventory).to eq(22)
+      expect(@ogre.inventory).to eq(22)
     end
+
+    # describe "When I've sumbitted an order with an item quantity that meets a discounts minimum quantity" do
+    #   it "I see the discount reflected in the subtotal for for that item on the order show page" do
+    #     discount_1 = @megan.discounts.create!(minimum_quantity: 5, discounted_percentage: 20, discount_name: "Fall 5")
+    #     @order_2 = @user.orders.create!(status: "pending")
+    #     visit "/profile/orders/#{@order_3.id}"
+    #     save_and_open_page
+    #     within "#order-item-#{@order_item_4.id}" do
+    #       expect(page).to have_content(@order_3.id)
+    #       expect(page).to have_content("Created On: #{@order_3.created_at}")
+    #       expect(page).to have_content("Updated On: #{@order_3.updated_at}")
+    #       expect(page).to have_content("Status: #{@order_3.status}")
+    #       expect(page).to have_content("#{@order_3.count_of_items} items")
+    #       expect(page).to have_content("Total: ")
+    #     end
+    #   end
+    #
+    # end
   end
 end
