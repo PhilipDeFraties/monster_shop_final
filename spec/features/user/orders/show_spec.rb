@@ -16,6 +16,7 @@ RSpec.describe 'Order Show Page' do
       @order_item_1 = @order_1.order_items.create!(item: @ogre, price: @ogre.price, quantity: 2, fulfilled: true)
       @order_item_2 = @order_2.order_items.create!(item: @giant, price: @hippo.price, quantity: 2, fulfilled: true)
       @order_item_3 = @order_2.order_items.create!(item: @ogre, price: @ogre.price, quantity: 2, fulfilled: false)
+      @user_2 = User.create!(name: 'Phil', address: '123 Main St', city: 'Denver', state: 'CO', zip: 80218, email: '123@example.com', password: 'securepassword')
 
 
       allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(@user)
@@ -85,22 +86,40 @@ RSpec.describe 'Order Show Page' do
       expect(@ogre.inventory).to eq(22)
     end
 
-    # describe "When I've sumbitted an order with an item quantity that meets a discounts minimum quantity" do
-    #   it "I see the discount reflected in the subtotal for for that item on the order show page" do
-    #     discount_1 = @megan.discounts.create!(minimum_quantity: 5, discounted_percentage: 20, discount_name: "Fall 5")
-    #     @order_2 = @user.orders.create!(status: "pending")
-    #     visit "/profile/orders/#{@order_3.id}"
-    #     save_and_open_page
-    #     within "#order-item-#{@order_item_4.id}" do
-    #       expect(page).to have_content(@order_3.id)
-    #       expect(page).to have_content("Created On: #{@order_3.created_at}")
-    #       expect(page).to have_content("Updated On: #{@order_3.updated_at}")
-    #       expect(page).to have_content("Status: #{@order_3.status}")
-    #       expect(page).to have_content("#{@order_3.count_of_items} items")
-    #       expect(page).to have_content("Total: ")
-    #     end
-    #   end
-    #
-    # end
+    describe "When I've sumbitted an order with an item quantity that meets a discounts minimum quantity" do
+      it "I see the discount reflected in the subtotal for for that item on the order show page" do
+        allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(@user_2)
+        discount_1 = @megan.discounts.create!(minimum_quantity: 5, discounted_percentage: 20, discount_name: "Fall 5")
+
+        visit visit item_path(@ogre)
+        click_button 'Add to Cart'
+        visit '/cart'
+
+        4.times do
+          click_button('More of This!')
+        end
+        click_button('Check Out')
+
+        order = Order.last
+        order_item = OrderItem.last
+        adjusted_price = (@ogre.price * ((100 - discount_1.discounted_percentage) * 0.01))
+        adjusted_sub_total = adjusted_price * order_item.quantity
+        
+        visit "/profile/orders/#{order.id}"
+
+        expect(page).to have_content(order.id)
+        expect(page).to have_content("Created On: #{order.created_at}")
+        expect(page).to have_content("Updated On: #{order.updated_at}")
+        expect(page).to have_content("Status: #{order.status}")
+        expect(page).to have_content("#{order.count_of_items} items")
+        expect(page).to have_content("Total: #{number_to_currency(adjusted_sub_total)}")
+
+        within "#order-item-#{order_item.id}" do
+          expect(page).to have_content("Quantity: #{order_item.quantity}")
+          expect(page).to have_content("Price: #{number_to_currency(adjusted_price)}")
+          expect(page).to have_content("Subtotal: #{number_to_currency(adjusted_sub_total)}")
+        end
+      end
+    end
   end
 end
